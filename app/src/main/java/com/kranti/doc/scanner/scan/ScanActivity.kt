@@ -13,9 +13,9 @@ import android.view.View
 import android.widget.Toast
 import com.kranti.doc.scanner.R
 import com.kranti.doc.scanner.base.BaseActivity
+import com.kranti.doc.scanner.crop.CropActivity
 import com.kranti.doc.scanner.view.PaperRectangle
 import kotlinx.android.synthetic.main.activity_scan.*
-import org.opencv.android.OpenCVLoader
 
 class ScanActivity : BaseActivity(), IScanView.Proxy {
     private val REQUEST_CAMERA_PERMISSION = 0
@@ -25,17 +25,14 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
     private lateinit var mPresenter: ScanPresenter
     private var latestBackPressTime: Long = 0
 
-
-
-
     override fun provideContentViewId(): Int = R.layout.activity_scan
 
     override fun initPresenter() {
-        mPresenter = ScanPresenter(this, this)
+        mPresenter = ScanPresenter(this, this, CropActivity::class.java)
     }
 
     override fun prepare() {
-        if (!OpenCVLoader.initDebug()) {
+        if (!mPresenter.initOpenCV()) {
             Log.i(TAG, "loading opencv error, exit")
             finish()
         }
@@ -53,7 +50,6 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
         }
         latestBackPressTime = System.currentTimeMillis()
     }
-
 
     override fun onStart() {
         super.onStart()
@@ -93,6 +89,7 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
     override fun getSurfaceView(): SurfaceView = surface
 
     override fun getPaperRect(): PaperRectangle = paper_rect
+
     fun imagePreview(view: View) {
         Toast.makeText(this, "this is the camera preview button you clicked", Toast.LENGTH_LONG).show()
         Log.d("IMAGE", "IMAGE PREVIEW ACTIVITY")
@@ -100,23 +97,19 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
         val uri = Uri.parse(Environment.getExternalStorageDirectory().path + "/smart_scanner/")
         intent.setDataAndType(uri, "*/*")
         startActivity(Intent.createChooser(intent, "Open folder"))
-
     }
-
 
     fun flashOn(view: View)
-{
-  flashOn.visibility= View.INVISIBLE
-    flashOff.visibility= View.VISIBLE
-    mPresenter.flashOn()
-
-}
-    fun flashOff(view: View)
     {
-        flashOff.visibility= View.INVISIBLE
-        flashOn.visibility= View.VISIBLE
-        mPresenter.flashOff()
-
+        flashOn.visibility = View.INVISIBLE
+        flashOff.visibility = View.VISIBLE
+        mPresenter.flashOn()
     }
 
+    fun flashOff(view: View)
+    {
+        flashOff.visibility = View.INVISIBLE
+        flashOn.visibility = View.VISIBLE
+        mPresenter.flashOff()
+    }
 }

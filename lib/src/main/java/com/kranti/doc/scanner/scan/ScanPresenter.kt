@@ -12,14 +12,11 @@ import android.media.MediaActionSound
 import android.util.Log
 import android.view.SurfaceHolder
 import android.widget.Toast
-import com.kranti.doc.scanner.SourceManager
-import com.kranti.doc.scanner.crop.CropActivity
-import com.kranti.doc.scanner.processor.Corners
-import com.kranti.doc.scanner.processor.processPicture
 import io.reactivex.Observable
 import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import org.opencv.android.OpenCVLoader
 import org.opencv.android.Utils
 import org.opencv.core.Core
 import org.opencv.core.CvType
@@ -33,9 +30,8 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 
-class ScanPresenter constructor(private val context: Context, private val iView: IScanView.Proxy)
+class ScanPresenter constructor(private val context: Context, private val iView: IScanView.Proxy, private val cropActivityClass: Class<*>)
     : SurfaceHolder.Callback, Camera.PictureCallback, Camera.PreviewCallback {
-
 
     private val TAG: String = "ScanPresenter"
     public var mCamera: Camera? = null
@@ -165,10 +161,10 @@ class ScanPresenter constructor(private val context: Context, private val iView:
                     val pic = Imgcodecs.imdecode(mat, Imgcodecs.CV_LOAD_IMAGE_UNCHANGED)
                     Core.rotate(pic, pic, Core.ROTATE_90_CLOCKWISE)
                     mat.release()
-                    SourceManager.corners = processPicture(pic)
+                    com.kranti.doc.scanner.SourceManager.corners = com.kranti.doc.scanner.processor.processPicture(pic)
                     Imgproc.cvtColor(pic, pic, Imgproc.COLOR_RGB2BGRA)
-                    SourceManager.pic = pic
-                    context.startActivity(Intent(context, CropActivity::class.java))
+                    com.kranti.doc.scanner.SourceManager.pic = pic
+                    context.startActivity(Intent(context, cropActivityClass))
                     busy = false
                 }
     }
@@ -204,8 +200,8 @@ class ScanPresenter constructor(private val context: Context, private val iView:
                         e.printStackTrace()
                     }
 
-                    Observable.create<Corners> {
-                        val corner = processPicture(img)
+                    Observable.create<com.kranti.doc.scanner.processor.Corners> {
+                        val corner = com.kranti.doc.scanner.processor.processPicture(img)
                         busy = false
                         if (null != corner) {
                             it.onNext(corner)
@@ -220,27 +216,27 @@ class ScanPresenter constructor(private val context: Context, private val iView:
                                 iView.getPaperRect().onCornersNotDetected()
                             })
                 }
-
     }
+
     fun flashOn()
-    { val param = mCamera?.parameters
+    {
+        val param = mCamera?.parameters
         Log.d("flash", "flash actiiviyy ON")
         param?.flashMode = Camera.Parameters.FLASH_MODE_ON
         mCamera?.parameters = param
-
     }
+
     fun flashOff()
-    { val param = mCamera?.parameters
+    {
+        val param = mCamera?.parameters
         Log.d("flash", "flash actiiviyy OFF")
         param?.flashMode = Camera.Parameters.FLASH_MODE_OFF
         mCamera?.parameters = param
-
     }
 
     private fun getMaxResolution(): Camera.Size? = mCamera?.parameters?.supportedPreviewSizes?.maxBy { it.width }
 
-
-
-
-
+    fun initOpenCV(): Boolean {
+        return OpenCVLoader.initDebug()
+    }
 }

@@ -105,7 +105,6 @@ class PaperRectangle : View {
     }
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
-
         if (!cropMode) {
             return false
         }
@@ -140,7 +139,6 @@ class PaperRectangle : View {
         path.close()
         invalidate()
     }
-
 
     private fun resize() {
         tl.x = tl.x.div(ratioX)
