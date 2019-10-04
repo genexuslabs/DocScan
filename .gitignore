@@ -11,3 +11,4 @@ gradlew.bat
 gradle.properties
 /gradle
 /buildSrc/build/
+openCVLibrary320/build/
