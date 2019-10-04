@@ -26,14 +26,14 @@ fun cropPicture(picture: Mat, pts: List<Point>): Mat {
     val widthB = Math.sqrt(Math.pow(tr.x - tl.x, 2.0) + Math.pow(tr.y - tl.y, 2.0))
 
     val dw = Math.max(widthA, widthB)
-    val maxWidth = java.lang.Double.valueOf(dw)!!.toInt()
+    val maxWidth = java.lang.Double.valueOf(dw).toInt()
 
 
     val heightA = Math.sqrt(Math.pow(tr.x - br.x, 2.0) + Math.pow(tr.y - br.y, 2.0))
     val heightB = Math.sqrt(Math.pow(tl.x - bl.x, 2.0) + Math.pow(tl.y - bl.y, 2.0))
 
     val dh = Math.max(heightA, heightB)
-    val maxHeight = java.lang.Double.valueOf(dh)!!.toInt()
+    val maxHeight = java.lang.Double.valueOf(dh).toInt()
 
     val croppedPic = Mat(maxHeight, maxWidth, CvType.CV_8UC4)
 
@@ -130,8 +130,8 @@ private fun sortPoints(points: List<Point>): List<Point> {
 
 private fun insideArea(rp: List<Point>, size: Size): Boolean {
 
-    val width = java.lang.Double.valueOf(size.width)!!.toInt()
-    val height = java.lang.Double.valueOf(size.height)!!.toInt()
+    val width = java.lang.Double.valueOf(size.width).toInt()
+    val height = java.lang.Double.valueOf(size.height).toInt()
     val baseHeightMeasure = height / 8
     val baseWidthMeasure = width / 8
 
