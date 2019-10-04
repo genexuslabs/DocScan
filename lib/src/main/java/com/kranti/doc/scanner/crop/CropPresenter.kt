@@ -8,10 +8,10 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Environment
 import android.os.SystemClock
-import android.support.v4.app.ActivityCompat
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
 import com.kranti.doc.scanner.SourceManager
 import com.kranti.doc.scanner.processor.Corners
 import com.kranti.doc.scanner.processor.TAG
