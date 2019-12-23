@@ -1,5 +1,6 @@
 package com.kranti.doc.scanner.scan
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -18,10 +19,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import org.opencv.android.OpenCVLoader
 import org.opencv.android.Utils
-import org.opencv.core.Core
-import org.opencv.core.CvType
-import org.opencv.core.Mat
-import org.opencv.core.Size
+import org.opencv.core.*
 import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
 import java.io.ByteArrayOutputStream
@@ -147,15 +145,15 @@ class ScanPresenter constructor(private val context: Context, private val iView:
         }
     }
 
+    @SuppressLint("CheckResult")
     override fun onPictureTaken(p0: ByteArray?, p1: Camera?) {
         Log.i(TAG, "on picture taken")
         Observable.just(p0)
                 .subscribeOn(proxySchedule)
                 .subscribe {
                     val pictureSize = p1?.parameters?.pictureSize
-                    Log.i(TAG, "picture size: " + pictureSize.toString())
-                    val mat = Mat(Size(pictureSize?.width?.toDouble() ?: 1920.toDouble(),
-                            pictureSize?.height?.toDouble() ?: 1080.toDouble()), CvType.CV_8U)
+                    Log.i(TAG, "picture size: " + pictureSize?.toString())
+                    val mat = Mat(Size(((pictureSize?.width ?: 1920) * (pictureSize?.height ?: 1080)).toDouble(), 1.0), CvType.CV_8U)
                     mat.put(0, 0, p0)
                     val pic = Imgcodecs.imdecode(mat, Imgcodecs.IMREAD_UNCHANGED)
                     Core.rotate(pic, pic, Core.ROTATE_90_CLOCKWISE)
@@ -169,6 +167,7 @@ class ScanPresenter constructor(private val context: Context, private val iView:
     }
 
 
+    @SuppressLint("CheckResult")
     override fun onPreviewFrame(p0: ByteArray?, p1: Camera?) {
         if (busy) {
             return
