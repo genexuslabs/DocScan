@@ -12,10 +12,13 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.kranti.doc.scanner.R
+import com.kranti.doc.scanner.SourceManager
 import com.kranti.doc.scanner.base.BaseActivity
 import com.kranti.doc.scanner.crop.CropActivity
+import com.kranti.doc.scanner.processor.Corners
 import com.kranti.doc.scanner.view.PaperRectangle
 import kotlinx.android.synthetic.main.activity_scan.*
+import org.opencv.core.Mat
 
 class ScanActivity : BaseActivity(), IScanView.Proxy {
     private val REQUEST_CAMERA_PERMISSION = 0
@@ -28,7 +31,13 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
     override fun provideContentViewId(): Int = R.layout.activity_scan
 
     override fun initPresenter() {
-        mPresenter = ScanPresenter(this, this, CropActivity::class.java)
+        mPresenter = ScanPresenter(this, this, object: ScanPresenter.Callback {
+            override fun onPictureTaken(corners: Corners?, picture: Mat) {
+                SourceManager.corners = corners
+                SourceManager.pic = picture
+                startActivity(Intent(this@ScanActivity, CropActivity::class.java))
+            }
+        })
     }
 
     override fun prepare() {
@@ -36,13 +45,9 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
             Log.i(TAG, "loading opencv error, exit")
             finish()
         }
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED &&
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
                 ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.CAMERA, android.Manifest.permission.WRITE_EXTERNAL_STORAGE), REQUEST_CAMERA_PERMISSION)
-        } else if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.CAMERA), REQUEST_CAMERA_PERMISSION)
-        } else if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE), REQUEST_CAMERA_PERMISSION)
         }
 
         shut.setOnClickListener {

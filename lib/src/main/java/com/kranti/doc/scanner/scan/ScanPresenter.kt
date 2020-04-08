@@ -13,6 +13,7 @@ import android.media.MediaActionSound
 import android.util.Log
 import android.view.SurfaceHolder
 import android.widget.Toast
+import com.kranti.doc.scanner.processor.Corners
 import io.reactivex.Observable
 import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -27,7 +28,7 @@ import java.io.IOException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-class ScanPresenter constructor(private val context: Context, private val iView: IScanView.Proxy, private val cropActivityClass: Class<*>)
+class ScanPresenter constructor(private val context: Context, private val iView: IScanView.Proxy, private val pictureTakenCallback: Callback)
     : SurfaceHolder.Callback, Camera.PictureCallback, Camera.PreviewCallback {
 
     private val TAG: String = "ScanPresenter"
@@ -158,10 +159,9 @@ class ScanPresenter constructor(private val context: Context, private val iView:
                     val pic = Imgcodecs.imdecode(mat, Imgcodecs.IMREAD_UNCHANGED)
                     Core.rotate(pic, pic, Core.ROTATE_90_CLOCKWISE)
                     mat.release()
-                    com.kranti.doc.scanner.SourceManager.corners = com.kranti.doc.scanner.processor.processPicture(pic)
+                    val corners = com.kranti.doc.scanner.processor.processPicture(pic)
                     Imgproc.cvtColor(pic, pic, Imgproc.COLOR_RGB2BGRA)
-                    com.kranti.doc.scanner.SourceManager.pic = pic
-                    context.startActivity(Intent(context, cropActivityClass))
+                    pictureTakenCallback.onPictureTaken(corners, pic)
                     busy = false
                 }
     }
@@ -236,5 +236,9 @@ class ScanPresenter constructor(private val context: Context, private val iView:
 
     fun initOpenCV(): Boolean {
         return OpenCVLoader.initDebug()
+    }
+
+    interface Callback {
+        fun onPictureTaken(corners: Corners?, picture: Mat)
     }
 }
