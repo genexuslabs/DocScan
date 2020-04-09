@@ -36,6 +36,7 @@ class ScanPresenter constructor(private val context: Context, private val iView:
     private val executor: ExecutorService
     private val proxySchedule: Scheduler
     private var busy: Boolean = false
+    private val cornersBuffer = CornersBuffer()
 
     init {
         mSurfaceHolder.addCallback(this)
@@ -56,8 +57,12 @@ class ScanPresenter constructor(private val context: Context, private val iView:
         Log.i(TAG, "try to focus")
         camera?.autoFocus { b, _ ->
             Log.i(TAG, "focus result: " + b)
-            camera?.takePicture(null, null, this)
-            MediaActionSound().play(MediaActionSound.SHUTTER_CLICK)
+            try {
+                camera?.takePicture(null, null, this)
+                MediaActionSound().play(MediaActionSound.SHUTTER_CLICK)
+            } catch (ex: RuntimeException) {
+                Log.e(TAG, ex.toString())
+            }
         }
     }
 
@@ -160,7 +165,7 @@ class ScanPresenter constructor(private val context: Context, private val iView:
                     mat.release()
                     val corners = com.kranti.doc.scanner.processor.processPicture(pic)
                     Imgproc.cvtColor(pic, pic, Imgproc.COLOR_RGB2BGRA)
-                    pictureTakenCallback.onPictureTaken(corners, pic)
+                    pictureTakenCallback.onPictureTaken(corners ?: cornersBuffer.lastCorners, pic)
                     busy = false
                 }
     }
@@ -198,18 +203,20 @@ class ScanPresenter constructor(private val context: Context, private val iView:
                     }
 
                     Observable.create<Corners> {
-                        val corner = com.kranti.doc.scanner.processor.processPicture(img)
+                        val corners = com.kranti.doc.scanner.processor.processPicture(img)
                         busy = false
-                        if (null != corner) {
-                            it.onNext(corner)
+                        if (null != corners) {
+                            it.onNext(corners)
                         } else {
                             it.onError(Throwable("paper not detected"))
                         }
                     }.observeOn(AndroidSchedulers.mainThread())
                             .subscribe({
                                 iView.getPaperRect().onCornersDetected(it)
+                                cornersBuffer.onCornersDetected(it)
                             }, {
                                 iView.getPaperRect().onCornersNotDetected()
+                                cornersBuffer.onCornersNotDetected()
                             })
                 }
     }

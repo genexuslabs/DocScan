@@ -72,7 +72,6 @@ class PaperRectangle : View {
     }
 
     fun onCorners2Crop(corners: Corners?, size: Size?) {
-
         cropMode = true
         tl = corners?.corners?.get(0) ?: SourceManager.defaultTl
         tr = corners?.corners?.get(1) ?: SourceManager.defaultTr
