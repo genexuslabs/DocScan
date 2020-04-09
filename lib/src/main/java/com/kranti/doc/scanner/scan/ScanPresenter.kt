@@ -2,7 +2,6 @@ package com.kranti.doc.scanner.scan
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.graphics.Point
@@ -32,7 +31,7 @@ class ScanPresenter constructor(private val context: Context, private val iView:
     : SurfaceHolder.Callback, Camera.PictureCallback, Camera.PreviewCallback {
 
     private val TAG: String = "ScanPresenter"
-    private var mCamera: Camera? = null
+    private var camera: Camera? = null
     private val mSurfaceHolder: SurfaceHolder = iView.getSurfaceView().holder
     private val executor: ExecutorService
     private val proxySchedule: Scheduler
@@ -45,48 +44,48 @@ class ScanPresenter constructor(private val context: Context, private val iView:
     }
 
     fun start() {
-        mCamera?.startPreview() ?: Log.i(TAG, "camera null")
+        camera?.startPreview() ?: Log.i(TAG, "camera null")
     }
 
     fun stop() {
-        mCamera?.stopPreview() ?: Log.i(TAG, "camera null")
+        camera?.stopPreview() ?: Log.i(TAG, "camera null")
     }
 
     fun shut() {
         busy = true
         Log.i(TAG, "try to focus")
-        mCamera?.autoFocus { b, _ ->
+        camera?.autoFocus { b, _ ->
             Log.i(TAG, "focus result: " + b)
-            mCamera?.takePicture(null, null, this)
+            camera?.takePicture(null, null, this)
             MediaActionSound().play(MediaActionSound.SHUTTER_CLICK)
         }
     }
 
     fun updateCamera() {
-        if (null == mCamera) {
+        if (null == camera) {
             return
         }
-        mCamera?.stopPreview()
+        camera?.stopPreview()
         try {
-            mCamera?.setPreviewDisplay(mSurfaceHolder)
+            camera?.setPreviewDisplay(mSurfaceHolder)
         } catch (e: IOException) {
             e.printStackTrace()
             return
         }
-        mCamera?.setPreviewCallback(this)
-        mCamera?.startPreview()
+        camera?.setPreviewCallback(this)
+        camera?.startPreview()
     }
 
     fun initCamera() {
         try {
-            mCamera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK)
+            camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK)
         } catch (e: RuntimeException) {
             e.stackTrace
             Toast.makeText(context, "cannot open camera, please grant camera", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val param = mCamera?.parameters
+        val param = camera?.parameters
 
         val size = getMaxResolution()
         param?.setPreviewSize(size?.width ?: 1920, size?.height ?: 1080)
@@ -103,7 +102,7 @@ class ScanPresenter constructor(private val context: Context, private val iView:
             iView.getSurfaceView().layoutParams = surfaceParams
         }
 
-        val supportPicSize = mCamera?.parameters?.supportedPictureSizes
+        val supportPicSize = camera?.parameters?.supportedPictureSizes
         supportPicSize?.sortByDescending { it.width.times(it.height) }
         var pictureSize = supportPicSize?.find { it.height.toFloat().div(it.width.toFloat()) - previewRatio < 0.01 }
 
@@ -125,8 +124,8 @@ class ScanPresenter constructor(private val context: Context, private val iView:
         }
         param?.flashMode = Camera.Parameters.FLASH_MODE_AUTO
 
-        mCamera?.parameters = param
-        mCamera?.setDisplayOrientation(90)
+        camera?.parameters = param
+        camera?.setDisplayOrientation(90)
     }
 
     override fun surfaceCreated(p0: SurfaceHolder?) {
@@ -139,10 +138,10 @@ class ScanPresenter constructor(private val context: Context, private val iView:
 
     override fun surfaceDestroyed(p0: SurfaceHolder?) {
         synchronized(this) {
-            mCamera?.stopPreview()
-            mCamera?.setPreviewCallback(null)
-            mCamera?.release()
-            mCamera = null
+            camera?.stopPreview()
+            camera?.setPreviewCallback(null)
+            camera?.release()
+            camera = null
         }
     }
 
@@ -198,7 +197,7 @@ class ScanPresenter constructor(private val context: Context, private val iView:
                         e.printStackTrace()
                     }
 
-                    Observable.create<com.kranti.doc.scanner.processor.Corners> {
+                    Observable.create<Corners> {
                         val corner = com.kranti.doc.scanner.processor.processPicture(img)
                         busy = false
                         if (null != corner) {
@@ -209,7 +208,6 @@ class ScanPresenter constructor(private val context: Context, private val iView:
                     }.observeOn(AndroidSchedulers.mainThread())
                             .subscribe({
                                 iView.getPaperRect().onCornersDetected(it)
-
                             }, {
                                 iView.getPaperRect().onCornersNotDetected()
                             })
@@ -218,21 +216,21 @@ class ScanPresenter constructor(private val context: Context, private val iView:
 
     fun flashOn()
     {
-        val param = mCamera?.parameters
+        val param = camera?.parameters
         Log.d("flash", "flash actiiviyy ON")
         param?.flashMode = Camera.Parameters.FLASH_MODE_ON
-        mCamera?.parameters = param
+        camera?.parameters = param
     }
 
     fun flashOff()
     {
-        val param = mCamera?.parameters
+        val param = camera?.parameters
         Log.d("flash", "flash actiiviyy OFF")
         param?.flashMode = Camera.Parameters.FLASH_MODE_OFF
-        mCamera?.parameters = param
+        camera?.parameters = param
     }
 
-    private fun getMaxResolution(): Camera.Size? = mCamera?.parameters?.supportedPreviewSizes?.maxBy { it.width }
+    private fun getMaxResolution(): Camera.Size? = camera?.parameters?.supportedPreviewSizes?.maxBy { it.width }
 
     fun initOpenCV(): Boolean {
         return OpenCVLoader.initDebug()

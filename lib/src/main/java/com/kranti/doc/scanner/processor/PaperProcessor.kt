@@ -6,6 +6,9 @@ import org.opencv.android.Utils
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 import kotlin.collections.ArrayList
+import kotlin.math.max
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 const val TAG: String = "PaperProcessor"
 
@@ -16,23 +19,23 @@ fun processPicture(previewFrame: Mat): Corners? {
 
 fun cropPicture(picture: Mat, pts: List<Point>): Mat {
 
-    pts.forEach { Log.i(TAG, "point: " + it.toString()) }
+    pts.forEach { Log.i(TAG, "point: $it") }
     val tl = pts[0]
     val tr = pts[1]
     val br = pts[2]
     val bl = pts[3]
 
-    val widthA = Math.sqrt(Math.pow(br.x - bl.x, 2.0) + Math.pow(br.y - bl.y, 2.0))
-    val widthB = Math.sqrt(Math.pow(tr.x - tl.x, 2.0) + Math.pow(tr.y - tl.y, 2.0))
+    val widthA = sqrt((br.x - bl.x).pow(2.0) + (br.y - bl.y).pow(2.0))
+    val widthB = sqrt((tr.x - tl.x).pow(2.0) + (tr.y - tl.y).pow(2.0))
 
-    val dw = Math.max(widthA, widthB)
+    val dw = max(widthA, widthB)
     val maxWidth = java.lang.Double.valueOf(dw).toInt()
 
 
-    val heightA = Math.sqrt(Math.pow(tr.x - br.x, 2.0) + Math.pow(tr.y - br.y, 2.0))
-    val heightB = Math.sqrt(Math.pow(tl.x - bl.x, 2.0) + Math.pow(tl.y - bl.y, 2.0))
+    val heightA = sqrt((tr.x - br.x).pow(2.0) + (tr.y - br.y).pow(2.0))
+    val heightB = sqrt((tl.x - bl.x).pow(2.0) + (tl.y - bl.y).pow(2.0))
 
-    val dh = Math.max(heightA, heightB)
+    val dh = max(heightA, heightB)
     val maxHeight = java.lang.Double.valueOf(dh).toInt()
 
     val croppedPic = Mat(maxHeight, maxWidth, CvType.CV_8UC4)

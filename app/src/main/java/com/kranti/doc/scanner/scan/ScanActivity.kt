@@ -95,7 +95,7 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
 
     override fun getPaperRect(): PaperRectangle = paper_rect
 
-    fun imagePreview(view: View) {
+    fun imagePreview(@Suppress("UNUSED_PARAMETER") view: View) {
         Toast.makeText(this, "this is the camera preview button you clicked", Toast.LENGTH_LONG).show()
         Log.d("IMAGE", "IMAGE PREVIEW ACTIVITY")
         val intent = Intent(Intent.ACTION_GET_CONTENT)
@@ -104,14 +104,14 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
         startActivity(Intent.createChooser(intent, "Open folder"))
     }
 
-    fun flashOn(view: View)
+    fun flashOn(@Suppress("UNUSED_PARAMETER") view: View)
     {
         flashOn.visibility = View.INVISIBLE
         flashOff.visibility = View.VISIBLE
         mPresenter.flashOn()
     }
 
-    fun flashOff(view: View)
+    fun flashOff(@Suppress("UNUSED_PARAMETER") view: View)
     {
         flashOff.visibility = View.INVISIBLE
         flashOn.visibility = View.VISIBLE
