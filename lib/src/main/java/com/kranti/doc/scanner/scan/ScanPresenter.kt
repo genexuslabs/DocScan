@@ -32,14 +32,15 @@ class ScanPresenter constructor(private val context: Context, private val iView:
 
     private val TAG: String = "ScanPresenter"
     private var camera: Camera? = null
-    private val mSurfaceHolder: SurfaceHolder = iView.getSurfaceView().holder
+    private val surfaceHolder = iView.getSurfaceView().holder
     private val executor: ExecutorService
     private val proxySchedule: Scheduler
     private var busy: Boolean = false
     private val cornersBuffer = CornersBuffer()
+    private var initialFlashMode = Camera.Parameters.FLASH_MODE_AUTO
 
     init {
-        mSurfaceHolder.addCallback(this)
+        surfaceHolder.addCallback(this)
         executor = Executors.newSingleThreadExecutor()
         proxySchedule = Schedulers.from(executor)
     }
@@ -72,7 +73,7 @@ class ScanPresenter constructor(private val context: Context, private val iView:
         }
         camera?.stopPreview()
         try {
-            camera?.setPreviewDisplay(mSurfaceHolder)
+            camera?.setPreviewDisplay(surfaceHolder)
         } catch (e: IOException) {
             e.printStackTrace()
             return
@@ -127,7 +128,7 @@ class ScanPresenter constructor(private val context: Context, private val iView:
         } else {
             Log.d(TAG, "autofocus not available")
         }
-        param?.flashMode = Camera.Parameters.FLASH_MODE_AUTO
+        param?.flashMode = initialFlashMode
 
         camera?.parameters = param
         camera?.setDisplayOrientation(90)
@@ -223,17 +224,19 @@ class ScanPresenter constructor(private val context: Context, private val iView:
 
     fun flashOn()
     {
+        initialFlashMode = Camera.Parameters.FLASH_MODE_ON
         val param = camera?.parameters
-        Log.d("flash", "flash actiiviyy ON")
-        param?.flashMode = Camera.Parameters.FLASH_MODE_ON
+        Log.d("flash", "flash active ON")
+        param?.flashMode = initialFlashMode
         camera?.parameters = param
     }
 
     fun flashOff()
     {
+        initialFlashMode = Camera.Parameters.FLASH_MODE_OFF
         val param = camera?.parameters
-        Log.d("flash", "flash actiiviyy OFF")
-        param?.flashMode = Camera.Parameters.FLASH_MODE_OFF
+        Log.d("flash", "flash active OFF")
+        param?.flashMode = initialFlashMode
         camera?.parameters = param
     }
 
