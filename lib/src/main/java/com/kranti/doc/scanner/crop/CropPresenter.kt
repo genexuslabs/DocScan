@@ -12,7 +12,6 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
-import com.kranti.doc.scanner.SourceManager
 import com.kranti.doc.scanner.processor.Corners
 import com.kranti.doc.scanner.processor.TAG
 import com.kranti.doc.scanner.processor.cropPicture
@@ -28,10 +27,7 @@ import java.io.FileOutputStream
 
 const val IMAGES_DIR = "smart_scanner"
 
-class CropPresenter(val context: Context, private val iCropView: ICropView.Proxy) {
-    private val picture: Mat? = SourceManager.pic
-
-    private val corners: Corners? = SourceManager.corners
+class CropPresenter(val context: Context, private val picture: Mat?, private val corners: Corners?, private val iCropView: ICropView.Proxy) {
     private var croppedPicture: Mat? = null
     private var enhancedPicture: Bitmap? = null
     private var croppedBitmap: Bitmap? = null

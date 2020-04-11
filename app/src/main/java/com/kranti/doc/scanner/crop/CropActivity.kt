@@ -2,6 +2,7 @@ package com.kranti.doc.scanner.crop
 
 import android.widget.ImageView
 import com.kranti.doc.scanner.R
+import com.kranti.doc.scanner.SourceManager
 import com.kranti.doc.scanner.base.BaseActivity
 import com.kranti.doc.scanner.view.PaperRectangle
 import kotlinx.android.synthetic.main.activity_crop.*
@@ -19,7 +20,7 @@ class CropActivity : BaseActivity(), ICropView.Proxy {
     override fun provideContentViewId(): Int = R.layout.activity_crop
 
     override fun initPresenter() {
-        mPresenter = CropPresenter(this, this)
+        mPresenter = CropPresenter(this, SourceManager.pic, SourceManager.corners, this)
     }
 
     override fun getPaper(): ImageView = paper
