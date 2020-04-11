@@ -61,7 +61,7 @@ class CropPresenter(val context: Context, private val picture: Mat?, private val
                     croppedPicture = pc
                     croppedBitmap = Bitmap.createBitmap(pc.width(), pc.height(), Bitmap.Config.ARGB_8888)
                     Utils.matToBitmap(pc, croppedBitmap)
-                    iCropView.getCroppedPaper().setImageBitmap(croppedBitmap)
+                    iCropView.getCroppedPaper()?.setImageBitmap(croppedBitmap)
                     iCropView.getPaper().visibility = View.GONE
                     iCropView.getPaperRect().visibility = View.GONE
                 }
@@ -80,7 +80,7 @@ class CropPresenter(val context: Context, private val picture: Mat?, private val
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe { pc ->
                     enhancedPicture = pc
-                    iCropView.getCroppedPaper().setImageBitmap(pc)
+                    iCropView.getCroppedPaper()?.setImageBitmap(pc)
                 }
     }
 

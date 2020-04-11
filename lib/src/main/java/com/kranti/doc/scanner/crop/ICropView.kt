@@ -10,6 +10,6 @@ class ICropView {
     interface Proxy {
         fun getPaper(): ImageView
         fun getPaperRect(): PaperRectangle
-        fun getCroppedPaper(): ImageView
+        fun getCroppedPaper(): ImageView? // needed if use crop or enhance functions
     }
 }
