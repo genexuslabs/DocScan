@@ -2,8 +2,11 @@ package com.kranti.doc.scanner.scan
 
 import android.provider.DocumentsContract
 import android.util.Log
+import android.view.View
 import com.kranti.doc.scanner.processor.Corners
+import com.kranti.doc.scanner.view.PaperRectangle
 import org.opencv.core.Point
+import org.opencv.core.Size
 import kotlin.math.max
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -15,7 +18,8 @@ class CornersBuffer {
     var autoDetectionRatio = .0
 
     fun onCornersDetected(corners: Corners): Boolean {
-        if (!matchLastCorners(corners) || !matchRatio(corners)) {
+        lastCorners = matchLastCorners(corners)
+        if (lastCorners == null || !matchRatio(corners)) {
             documentDetected = 0
         } else if (documentDetected != -1 && ++documentDetected >= AUTO_SCAN_THRESHOLD) {
             documentDetected = -1 // don't detect the same shape twice
@@ -28,42 +32,45 @@ class CornersBuffer {
         documentDetected = 0
     }
 
-    fun getFinalCorners(corners: Corners?): Corners? {
+    fun getFinalCorners(corners: Corners?, paper: View): Corners? {
+        if (corners?.corners != null) {
+            val ratioX = corners.size.width.div(paper.measuredWidth)
+            val ratioY = corners.size.height.div(paper.measuredHeight)
+            lastCorners?.corners?.let {
+                lastCorners = Corners(it.map { pt -> pt?.let { Point(pt.x * ratioX, pt.y * ratioY )} }, corners.size)
+            }
+        }
         return corners?.let {
-            if (matchLastCorners(it)) it else lastCorners
+            matchLastCorners(it) ?: lastCorners
         } ?: lastCorners
     }
 
-    private fun matchLastCorners(corners: Corners): Boolean {
+    private fun matchLastCorners(corners: Corners): Corners? {
         for (n in corners.corners.indices) {
             for (m in 1 until corners.corners.size) {
                 if (corners.corners[n] == null || corners.corners[m] == null ||
                         m != n && corners.corners[n]!!.x == corners.corners[m]!!.x && corners.corners[n]!!.y == corners.corners[m]!!.y) {
                     // triangle
-                    lastCorners = null
-                    return false
+                    return null
                 }
             }
         }
-        if (lastCorners == null) {
-            lastCorners = corners
-            return true
-        }
-        if (corners.corners.size != lastCorners?.corners?.size) {
-            lastCorners = null
-            return false
-        }
+
+        if (lastCorners == null)
+            return corners
+
+        if (corners.corners.size != lastCorners?.corners?.size)
+            return null
+
         for (n in corners.corners.indices) {
             val xDifference = corners.corners[n]!!.x - lastCorners!!.corners[n]!!.x
             val yDifference = corners.corners[n]!!.y - lastCorners!!.corners[n]!!.y
             val distanceSquare = xDifference * xDifference + yDifference * yDifference
-            if (distanceSquare > MATCHING_THRESHOLD_SQUARED) {
-                lastCorners = null
-                return false
-            }
+            if (distanceSquare > MATCHING_THRESHOLD_SQUARED)
+                return null
         }
-        lastCorners = corners
-        return true
+
+        return corners
     }
 
     private fun matchRatio(corners: Corners): Boolean {
