@@ -1,18 +1,37 @@
 package com.kranti.doc.scanner.scan
 
+import android.provider.DocumentsContract
+import android.util.Log
 import com.kranti.doc.scanner.processor.Corners
-
-private const val MATCHING_THRESHOLD_SQUARED = 50.0 * 50.0
+import org.opencv.core.Point
+import kotlin.math.max
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 class CornersBuffer {
     var lastCorners: Corners? = null
+    var documentDetected = 0
+    var autoDetectionEnable = true
+    var autoDetectionRatio = .0
 
-    fun onCornersDetected(corners: Corners) {
-        matchLastCorners(corners)
+    fun onCornersDetected(corners: Corners): Boolean {
+        if (!matchLastCorners(corners) || !matchRatio(corners)) {
+            documentDetected = 0
+        } else if (documentDetected != -1 && ++documentDetected >= AUTO_SCAN_THRESHOLD) {
+            documentDetected = -1 // don't detect the same shape twice
+            return true
+        }
+        return false
     }
 
     fun onCornersNotDetected() {
+        documentDetected = 0
+    }
 
+    fun getFinalCorners(corners: Corners?): Corners? {
+        return corners?.let {
+            if (matchLastCorners(it)) it else lastCorners
+        } ?: lastCorners
     }
 
     private fun matchLastCorners(corners: Corners): Boolean {
@@ -45,5 +64,33 @@ class CornersBuffer {
         }
         lastCorners = corners
         return true
+    }
+
+    private fun matchRatio(corners: Corners): Boolean {
+        if (autoDetectionRatio == .0)
+            return true
+
+        val tl: Point = corners.corners[0]!!
+        val tr: Point = corners.corners[1]!!
+        val br: Point = corners.corners[2]!!
+        val bl: Point = corners.corners[3]!!
+
+        val widthA = sqrt((br.x - bl.x).pow(2.0) + (br.y - bl.y).pow(2.0))
+        val widthB = sqrt((tr.x - tl.x).pow(2.0) + (tr.y - tl.y).pow(2.0))
+        val dw = max(widthA, widthB)
+
+        val heightA = sqrt((tr.x - br.x).pow(2.0) + (tr.y - br.y).pow(2.0))
+        val heightB = sqrt((tl.x - bl.x).pow(2.0) + (tl.y - bl.y).pow(2.0))
+        val dh = max(heightA, heightB)
+
+        val ratio = if (dh < dw) dh / dw else dw / dh
+        Log.i("RATIO", ratio.toString())
+
+        return ratio >= autoDetectionRatio * 0.9 && ratio <= autoDetectionRatio * 1.1
+    }
+
+    companion object {
+        private const val MATCHING_THRESHOLD_SQUARED = 50.0 * 50.0
+        private const val AUTO_SCAN_THRESHOLD = 3
     }
 }

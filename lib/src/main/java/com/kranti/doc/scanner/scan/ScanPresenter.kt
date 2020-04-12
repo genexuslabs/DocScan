@@ -166,7 +166,7 @@ class ScanPresenter constructor(private val context: Context, private val iView:
                     mat.release()
                     val corners = com.kranti.doc.scanner.processor.processPicture(pic)
                     Imgproc.cvtColor(pic, pic, Imgproc.COLOR_RGB2BGRA)
-                    pictureTakenCallback.onPictureTaken(corners ?: cornersBuffer.lastCorners, pic)
+                    pictureTakenCallback.onPictureTaken(cornersBuffer.getFinalCorners(corners), pic)
                     busy = false
                 }
     }
@@ -214,13 +214,22 @@ class ScanPresenter constructor(private val context: Context, private val iView:
                     }.observeOn(AndroidSchedulers.mainThread())
                             .subscribe({
                                 iView.getPaperRect().onCornersDetected(it)
-                                cornersBuffer.onCornersDetected(it)
+                                if (cornersBuffer.onCornersDetected(it))
+                                    shut()
                             }, {
                                 iView.getPaperRect().onCornersNotDetected()
                                 cornersBuffer.onCornersNotDetected()
                             })
                 }
     }
+
+    var autoDetectionEnable
+        get() = cornersBuffer.autoDetectionEnable
+        set(value) { cornersBuffer.autoDetectionEnable = value }
+
+    var autoDectectionRatio
+        get() = cornersBuffer.autoDetectionRatio
+        set(value) { cornersBuffer.autoDetectionRatio = value }
 
     fun flashOn()
     {
