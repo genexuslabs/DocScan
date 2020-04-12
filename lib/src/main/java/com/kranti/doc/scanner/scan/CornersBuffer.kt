@@ -32,19 +32,6 @@ class CornersBuffer {
         documentDetected = 0
     }
 
-    fun getFinalCorners(corners: Corners?, paper: View): Corners? {
-        if (corners?.corners != null) {
-            val ratioX = corners.size.width.div(paper.measuredWidth)
-            val ratioY = corners.size.height.div(paper.measuredHeight)
-            lastCorners?.corners?.let {
-                lastCorners = Corners(it.map { pt -> pt?.let { Point(pt.x * ratioX, pt.y * ratioY )} }, corners.size)
-            }
-        }
-        return corners?.let {
-            matchLastCorners(it) ?: lastCorners
-        } ?: lastCorners
-    }
-
     private fun matchLastCorners(corners: Corners): Corners? {
         for (n in corners.corners.indices) {
             for (m in 1 until corners.corners.size) {

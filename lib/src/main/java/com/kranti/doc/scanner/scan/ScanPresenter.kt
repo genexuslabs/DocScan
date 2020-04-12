@@ -166,7 +166,7 @@ class ScanPresenter constructor(private val context: Context, private val iView:
                     mat.release()
                     val corners = com.kranti.doc.scanner.processor.processPicture(pic)
                     Imgproc.cvtColor(pic, pic, Imgproc.COLOR_RGB2BGRA)
-                    pictureTakenCallback.onPictureTaken(cornersBuffer.getFinalCorners(corners, iView.getSurfaceView()), pic)
+                    pictureTakenCallback.onPictureTaken(corners, pic)
                     busy = false
                 }
     }
