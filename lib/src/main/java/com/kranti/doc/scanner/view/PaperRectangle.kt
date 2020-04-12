@@ -79,8 +79,8 @@ class PaperRectangle : View {
         bl = corners?.corners?.get(3) ?: SourceManager.defaultBl
         val displayMetrics = DisplayMetrics()
         (context as Activity).windowManager.defaultDisplay.getMetrics(displayMetrics)
-        //exclude status bar height
-        val statusBarHeight = getStatusBarHeight(context)
+        //exclude status bar height (not always it seems)
+        val statusBarHeight = 0 //getStatusBarHeight(context)
         ratioX = size?.width?.div(displayMetrics.widthPixels) ?: 1.0
         ratioY = size?.height?.div(displayMetrics.heightPixels - statusBarHeight) ?: 1.0
         resize()
