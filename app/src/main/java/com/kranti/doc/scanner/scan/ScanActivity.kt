@@ -31,17 +31,19 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
     override fun provideContentViewId(): Int = R.layout.activity_scan
 
     override fun initPresenter() {
-        mPresenter = ScanPresenter(this, this, object: ScanPresenter.Callback {
+        val scanCallback = object: ScanPresenter.Callback {
             override fun onPictureTaken(corners: Corners?, picture: Mat) {
                 SourceManager.corners = corners
                 SourceManager.pic = picture
                 startActivity(Intent(this@ScanActivity, CropActivity::class.java))
             }
-        })
+        }
+
+        mPresenter = ScanPresenter.new(this, this, scanCallback)
     }
 
     override fun prepare() {
-        if (!mPresenter.initOpenCV()) {
+        if (!ScanPresenter.initOpenCV()) {
             Log.i(TAG, "loading opencv error, exit")
             finish()
         }
@@ -83,8 +85,7 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
         if (requestCode == REQUEST_CAMERA_PERMISSION
                 && (grantResults[permissions.indexOf(android.Manifest.permission.CAMERA)] == PackageManager.PERMISSION_GRANTED)) {
             showMessage(R.string.camera_grant)
-            mPresenter.initCamera()
-            mPresenter.updateCamera()
+            mPresenter.onPermissionGranted()
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
@@ -95,6 +96,7 @@ class ScanActivity : BaseActivity(), IScanView.Proxy {
 
     override fun getPaperRect(): PaperRectangle = paper_rect
 
+    @Suppress("DEPRECATION")
     fun imagePreview(@Suppress("UNUSED_PARAMETER") view: View) {
         Toast.makeText(this, "this is the camera preview button you clicked", Toast.LENGTH_LONG).show()
         Log.d("IMAGE", "IMAGE PREVIEW ACTIVITY")
