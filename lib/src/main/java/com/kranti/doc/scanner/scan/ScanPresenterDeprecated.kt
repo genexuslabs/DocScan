@@ -7,7 +7,6 @@ import android.graphics.BitmapFactory
 import android.graphics.Point
 import android.graphics.Rect
 import android.graphics.YuvImage
-import android.hardware.Camera
 import android.media.MediaActionSound
 import android.util.Log
 import android.view.SurfaceHolder
@@ -28,15 +27,15 @@ import java.util.concurrent.Executors
 
 @Suppress("DEPRECATION")
 class ScanPresenterDeprecated(private val context: Context, private val iView: IScanView, private val pictureTakenCallback: ScanPresenter.Callback)
-    : ScanPresenter, SurfaceHolder.Callback, Camera.PictureCallback, Camera.PreviewCallback {
+    : ScanPresenter, SurfaceHolder.Callback, android.hardware.Camera.PictureCallback, android.hardware.Camera.PreviewCallback {
 
-    private var camera: Camera? = null
+    private var camera: android.hardware.Camera? = null
     private val surfaceHolder = iView.surfaceView.holder
     private val executor: ExecutorService
     private val proxySchedule: Scheduler
     private var busy: Boolean = false
     private val cornersBuffer = CornersBuffer()
-    private var initialFlashMode = Camera.Parameters.FLASH_MODE_AUTO
+    private var initialFlashMode = android.hardware.Camera.Parameters.FLASH_MODE_AUTO
 
     init {
         surfaceHolder.addCallback(this)
@@ -83,7 +82,7 @@ class ScanPresenterDeprecated(private val context: Context, private val iView: I
 
     private fun initCamera() {
         try {
-            camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK)
+            camera = android.hardware.Camera.open(android.hardware.Camera.CameraInfo.CAMERA_FACING_BACK)
         } catch (e: RuntimeException) {
             e.stackTrace
             Toast.makeText(context, "cannot open camera, please grant camera", Toast.LENGTH_SHORT).show()
@@ -122,7 +121,7 @@ class ScanPresenterDeprecated(private val context: Context, private val iView: I
         }
         val pm = context.packageManager
         if (pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_AUTOFOCUS)) {
-            param?.focusMode = Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE
+            param?.focusMode = android.hardware.Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE
             Log.d(ScanPresenter.TAG, "enabling autofocus")
         } else {
             Log.d(ScanPresenter.TAG, "autofocus not available")
@@ -151,7 +150,7 @@ class ScanPresenterDeprecated(private val context: Context, private val iView: I
     }
 
     @SuppressLint("CheckResult")
-    override fun onPictureTaken(p0: ByteArray?, p1: Camera?) {
+    override fun onPictureTaken(p0: ByteArray?, p1: android.hardware.Camera?) {
         Log.i(ScanPresenter.TAG, "on picture taken")
         Observable.just(p0)
                 .subscribeOn(proxySchedule)
@@ -172,7 +171,7 @@ class ScanPresenterDeprecated(private val context: Context, private val iView: I
 
 
     @SuppressLint("CheckResult")
-    override fun onPreviewFrame(p0: ByteArray?, p1: Camera?) {
+    override fun onPreviewFrame(p0: ByteArray?, p1: android.hardware.Camera?) {
         if (busy) {
             return
         }
@@ -232,7 +231,7 @@ class ScanPresenterDeprecated(private val context: Context, private val iView: I
 
     override fun flashOn()
     {
-        initialFlashMode = Camera.Parameters.FLASH_MODE_ON
+        initialFlashMode = android.hardware.Camera.Parameters.FLASH_MODE_ON
         val param = camera?.parameters
         Log.d("flash", "flash active ON")
         param?.flashMode = initialFlashMode
@@ -241,7 +240,7 @@ class ScanPresenterDeprecated(private val context: Context, private val iView: I
 
     override fun flashOff()
     {
-        initialFlashMode = Camera.Parameters.FLASH_MODE_OFF
+        initialFlashMode = android.hardware.Camera.Parameters.FLASH_MODE_OFF
         val param = camera?.parameters
         Log.d("flash", "flash active OFF")
         param?.flashMode = initialFlashMode
@@ -253,5 +252,5 @@ class ScanPresenterDeprecated(private val context: Context, private val iView: I
         updateCamera()
     }
 
-    private fun getMaxResolution(): Camera.Size? = camera?.parameters?.supportedPreviewSizes?.maxBy { it.width }
+    private fun getMaxResolution(): android.hardware.Camera.Size? = camera?.parameters?.supportedPreviewSizes?.maxBy { it.width }
 }

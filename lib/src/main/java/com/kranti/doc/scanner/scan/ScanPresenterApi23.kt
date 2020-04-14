@@ -118,8 +118,8 @@ class ScanPresenterApi23(private val context: Context, private val iView: IScanV
             val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
             val rotation = windowManager.defaultDisplay.rotation
             captureBuilder?.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS[rotation])
-            val readerListener = ImageReader.OnImageAvailableListener { reader ->
-                reader.acquireLatestImage().use {
+            val readerListener = ImageReader.OnImageAvailableListener { reader1 ->
+                reader1.acquireLatestImage().use {
                     val buffer = it.planes[0].buffer
                     val bytes = ByteArray(buffer.capacity())
                     buffer.get(bytes)
@@ -159,7 +159,7 @@ class ScanPresenterApi23(private val context: Context, private val iView: IScanV
     private fun startBackgroundThread() {
         backgroundThread = HandlerThread("Camera Background")
         backgroundThread?.start()
-        backgroundHandler = Handler(backgroundThread?.looper)
+        backgroundHandler = Handler(backgroundThread?.looper!!)
     }
 
     private fun stopBackgroundThread() {
