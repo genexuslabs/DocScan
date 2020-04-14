@@ -27,11 +27,11 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 @Suppress("DEPRECATION")
-class ScanPresenterDeprecated(private val context: Context, private val iView: IScanView.Proxy, private val pictureTakenCallback: ScanPresenter.Callback)
+class ScanPresenterDeprecated(private val context: Context, private val iView: IScanView, private val pictureTakenCallback: ScanPresenter.Callback)
     : ScanPresenter, SurfaceHolder.Callback, Camera.PictureCallback, Camera.PreviewCallback {
 
     private var camera: Camera? = null
-    private val surfaceHolder = iView.getSurfaceView().holder
+    private val surfaceHolder = iView.surfaceView.holder
     private val executor: ExecutorService
     private val proxySchedule: Scheduler
     private var busy: Boolean = false
@@ -94,7 +94,7 @@ class ScanPresenterDeprecated(private val context: Context, private val iView: I
 
         val size = getMaxResolution()
         param?.setPreviewSize(size?.width ?: 1920, size?.height ?: 1080)
-        val display = iView.getDisplay()
+        val display = iView.display
         val point = Point()
         display.getRealSize(point)
         val displayWidth = minOf(point.x, point.y)
@@ -102,9 +102,9 @@ class ScanPresenterDeprecated(private val context: Context, private val iView: I
         val displayRatio = displayWidth.div(displayHeight.toFloat())
         val previewRatio = size?.height?.toFloat()?.div(size.width.toFloat()) ?: displayRatio
         if (displayRatio > previewRatio) {
-            val surfaceParams = iView.getSurfaceView().layoutParams
+            val surfaceParams = iView.surfaceView.layoutParams
             surfaceParams.height = (displayHeight / displayRatio * previewRatio).toInt()
-            iView.getSurfaceView().layoutParams = surfaceParams
+            iView.surfaceView.layoutParams = surfaceParams
         }
 
         val supportPicSize = camera?.parameters?.supportedPictureSizes
@@ -212,11 +212,11 @@ class ScanPresenterDeprecated(private val context: Context, private val iView: I
                         }
                     }.observeOn(AndroidSchedulers.mainThread())
                             .subscribe({
-                                iView.getPaperRect().onCornersDetected(it)
+                                iView.paperRect.onCornersDetected(it)
                                 if (cornersBuffer.onCornersDetected(it))
                                     shut()
                             }, {
-                                iView.getPaperRect().onCornersNotDetected()
+                                iView.paperRect.onCornersNotDetected()
                                 cornersBuffer.onCornersNotDetected()
                             })
                 }

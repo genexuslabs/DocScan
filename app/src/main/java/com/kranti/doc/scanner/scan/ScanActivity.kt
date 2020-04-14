@@ -23,7 +23,7 @@ import com.kranti.doc.scanner.view.PaperRectangle
 import kotlinx.android.synthetic.main.activity_scan.*
 import org.opencv.core.Mat
 
-class ScanActivity : AppCompatActivity(), IScanView.Proxy {
+class ScanActivity : AppCompatActivity(), IScanView {
 
     private lateinit var mPresenter: ScanPresenter
     private var latestBackPressTime: Long = 0
@@ -96,11 +96,11 @@ class ScanActivity : AppCompatActivity(), IScanView.Proxy {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
-    override fun getDisplay(): Display = windowManager.defaultDisplay
+    override val display: Display get() = windowManager.defaultDisplay
 
-    override fun getSurfaceView(): SurfaceView = surface
+    override val surfaceView: SurfaceView get() = surface
 
-    override fun getPaperRect(): PaperRectangle = paper_rect
+    override val paperRect: PaperRectangle get() = paper_rect
 
     @Suppress("DEPRECATION")
     fun imagePreview(@Suppress("UNUSED_PARAMETER") view: View) {

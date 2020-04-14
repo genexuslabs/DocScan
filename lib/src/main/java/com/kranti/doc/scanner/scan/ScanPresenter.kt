@@ -23,7 +23,7 @@ interface ScanPresenter {
     companion object {
         val TAG: String = "ScanPresenter"
 
-        fun new(context: Context, iView: IScanView.Proxy, pictureTakenCallback: Callback): ScanPresenter {
+        fun new(context: Context, iView: IScanView, pictureTakenCallback: Callback): ScanPresenter {
             return if (Build.VERSION.SDK_INT >= 23)
                 ScanPresenterApi23(context, iView, pictureTakenCallback)
             else

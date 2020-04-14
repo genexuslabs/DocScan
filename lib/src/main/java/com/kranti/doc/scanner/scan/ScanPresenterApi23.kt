@@ -20,10 +20,10 @@ import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
 
 @RequiresApi(23) // Needs 23 for the flash, even though camera2 is available in 21
-class ScanPresenterApi23(private val context: Context, private val iView: IScanView.Proxy, private val pictureTakenCallback: ScanPresenter.Callback)
+class ScanPresenterApi23(private val context: Context, private val iView: IScanView, private val pictureTakenCallback: ScanPresenter.Callback)
     : ScanPresenter {
 
-    private val surfaceHolder = iView.getSurfaceView().holder
+    private val surfaceHolder = iView.surfaceView.holder
     private val cornersBuffer = CornersBuffer()
     private var initialFlashMode = CameraMetadata.CONTROL_MODE_AUTO
 

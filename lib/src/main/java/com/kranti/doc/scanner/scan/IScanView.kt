@@ -5,10 +5,8 @@ import android.view.SurfaceView
 import com.kranti.doc.scanner.view.PaperRectangle
 
 interface IScanView {
-    interface Proxy {
-        fun exit()
-        fun getDisplay(): Display
-        fun getSurfaceView(): SurfaceView
-        fun getPaperRect(): PaperRectangle
-    }
+    val display: Display
+    val surfaceView: SurfaceView
+    val paperRect: PaperRectangle
+    fun exit()
 }
