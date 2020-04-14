@@ -14,7 +14,6 @@ import android.view.SurfaceHolder
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import org.opencv.core.Core
 import org.opencv.core.CvType
 import org.opencv.core.Mat
 import org.opencv.imgcodecs.Imgcodecs
@@ -128,7 +127,6 @@ class ScanPresenterApi23(private val context: Context, private val iView: IScanV
                             (imageDimension?.height ?: 1080)).toDouble(), 1.0), CvType.CV_8U)
                     mat.put(0, 0, bytes)
                     val pic = Imgcodecs.imdecode(mat, Imgcodecs.IMREAD_UNCHANGED)
-                    Core.rotate(pic, pic, Core.ROTATE_90_CLOCKWISE)
                     mat.release()
                     val corners = com.kranti.doc.scanner.processor.processPicture(pic)
                     Imgproc.cvtColor(pic, pic, Imgproc.COLOR_RGB2BGRA)
