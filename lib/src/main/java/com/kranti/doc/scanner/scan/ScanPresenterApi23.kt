@@ -3,7 +3,6 @@ package com.kranti.doc.scanner.scan
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.ImageFormat
-import android.graphics.SurfaceTexture
 import android.hardware.camera2.*
 import android.media.ImageReader
 import android.os.Handler
@@ -53,7 +52,6 @@ class ScanPresenterApi23(private val context: Context, private val iView: IScanV
 
     override fun start() {
         startBackgroundThread()
-        openCamera()
     }
 
     override fun stop() {
@@ -69,10 +67,10 @@ class ScanPresenterApi23(private val context: Context, private val iView: IScanV
         val manager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         Log.e(ScanPresenter.TAG, "is camera open")
         try {
-            val cameraId = manager.cameraIdList[0]
+            val cameraId = manager.cameraIdList[0] // Usually front camera is at 0 position.
             val characteristics = manager.getCameraCharacteristics(cameraId)
             val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)!!
-            imageDimension = map?.getOutputSizes(SurfaceTexture::class.java)?.get(0)
+            imageDimension = map.getOutputSizes(SurfaceHolder::class.java)?.get(0)
             manager.openCamera(cameraId, object : CameraDevice.StateCallback() {
                 override fun onOpened(camera: CameraDevice) {
                     Log.e(ScanPresenter.TAG, "onOpened");
@@ -103,7 +101,7 @@ class ScanPresenterApi23(private val context: Context, private val iView: IScanV
         val manager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         try {
             val characteristics = manager.getCameraCharacteristics(cameraDevice!!.id)
-            var jpegSizes = characteristics[CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP]?.getOutputSizes(ImageFormat.JPEG)
+            val jpegSizes = characteristics[CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP]?.getOutputSizes(ImageFormat.JPEG)
             var width = 640
             var height = 480
             if (jpegSizes != null && jpegSizes.isNotEmpty()) {
@@ -180,6 +178,7 @@ class ScanPresenterApi23(private val context: Context, private val iView: IScanV
     private fun createCameraPreview() {
         try {
             val surface = surfaceHolder.surface
+            surfaceHolder.setFixedSize(imageDimension?.width ?: 1080, imageDimension?.height ?: 1920)
             captureRequestBuilder = cameraDevice?.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
             captureRequestBuilder?.addTarget(surface)
             cameraDevice?.createCaptureSession(listOf(surface), object : CameraCaptureSession.StateCallback() {

@@ -1,26 +1,27 @@
 package com.kranti.doc.scanner.crop
 
+import android.os.Bundle
 import android.widget.ImageView
+import androidx.appcompat.app.AppCompatActivity
 import com.kranti.doc.scanner.R
 import com.kranti.doc.scanner.SourceManager
-import com.kranti.doc.scanner.base.BaseActivity
 import com.kranti.doc.scanner.view.PaperRectangle
 import kotlinx.android.synthetic.main.activity_crop.*
 
-class CropActivity : BaseActivity(), ICropView.Proxy {
+class CropActivity : AppCompatActivity(), ICropView.Proxy {
 
     private lateinit var mPresenter: CropPresenter
 
-    override fun prepare() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_crop)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+        mPresenter = CropPresenter(this, SourceManager.pic, SourceManager.corners, this)
+
         crop.setOnClickListener { mPresenter.crop() }
         enhance.setOnClickListener { mPresenter.enhance() }
         save.setOnClickListener { mPresenter.save() }
-    }
-
-    override fun provideContentViewId(): Int = R.layout.activity_crop
-
-    override fun initPresenter() {
-        mPresenter = CropPresenter(this, SourceManager.pic, SourceManager.corners, this)
     }
 
     override fun getPaper(): ImageView = paper
