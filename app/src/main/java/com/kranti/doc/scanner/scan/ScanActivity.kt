@@ -1,6 +1,5 @@
 package com.kranti.doc.scanner.scan
 
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -10,7 +9,6 @@ import android.util.Log
 import android.view.Display
 import android.view.SurfaceView
 import android.view.View
-import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -25,7 +23,7 @@ import org.opencv.core.Mat
 
 class ScanActivity : AppCompatActivity(), IScanView {
 
-    private lateinit var mPresenter: ScanPresenter
+    private lateinit var presenter: ScanPresenter
     private var latestBackPressTime: Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,7 +43,7 @@ class ScanActivity : AppCompatActivity(), IScanView {
             }
         }
 
-        mPresenter = ScanPresenter.new(this, this, scanCallback)
+        presenter = ScanPresenter.new(this, this, scanCallback)
     }
 
     private fun prepare() {
@@ -59,19 +57,19 @@ class ScanActivity : AppCompatActivity(), IScanView {
         }
 
         shut.setOnClickListener {
-            mPresenter.shut()
+            presenter.shut()
         }
         latestBackPressTime = System.currentTimeMillis()
     }
 
     override fun onStart() {
         super.onStart()
-        mPresenter.start()
+        presenter.start()
     }
 
     override fun onStop() {
         super.onStop()
-        mPresenter.stop()
+        presenter.stop()
     }
 
     override fun exit() {
@@ -91,7 +89,7 @@ class ScanActivity : AppCompatActivity(), IScanView {
         if (requestCode == Companion.REQUEST_CAMERA_PERMISSION
                 && (grantResults[permissions.indexOf(android.Manifest.permission.CAMERA)] == PackageManager.PERMISSION_GRANTED)) {
             Toast.makeText(this, R.string.camera_grant, Toast.LENGTH_SHORT).show()
-            mPresenter.onPermissionGranted()
+            presenter.onPermissionGranted()
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
@@ -116,14 +114,14 @@ class ScanActivity : AppCompatActivity(), IScanView {
     {
         flashOn.visibility = View.INVISIBLE
         flashOff.visibility = View.VISIBLE
-        mPresenter.flashOn()
+        presenter.flashOn()
     }
 
     fun flashOff(@Suppress("UNUSED_PARAMETER") view: View)
     {
         flashOff.visibility = View.INVISIBLE
         flashOn.visibility = View.VISIBLE
-        mPresenter.flashOff()
+        presenter.flashOff()
     }
 
     companion object {
