@@ -21,11 +21,11 @@ interface ScanPresenter {
     }
 
     companion object {
-        val TAG: String = "ScanPresenter"
+        const val TAG: String = "ScanPresenter"
 
         fun new(context: Context, iView: IScanView, pictureTakenCallback: Callback): ScanPresenter {
-            return if (Build.VERSION.SDK_INT >= 23)
-                ScanPresenterApi23(context, iView, pictureTakenCallback)
+            return if (Build.VERSION.SDK_INT >= 21)
+                ScanPresenterApi21(context, iView, pictureTakenCallback)
             else
                 ScanPresenterDeprecated(context, iView, pictureTakenCallback)
         }
