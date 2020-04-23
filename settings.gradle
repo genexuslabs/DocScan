@@ -1,1 +1,1 @@
-include ':app', ':lib', ':openCVLibrary320'
+include ':app', ':lib'
