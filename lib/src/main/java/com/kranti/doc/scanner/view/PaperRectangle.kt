@@ -31,6 +31,7 @@ class PaperRectangle : View {
     private var cropMode = false
     private var latestDownX = 0.0F
     private var latestDownY = 0.0F
+    private var originalSize: Size? = null
 
     init {
         rectPaint.color = Color.BLUE
@@ -57,12 +58,7 @@ class PaperRectangle : View {
         br = corners.corners[2]?.clone() ?: Point()
         bl = corners.corners[3]?.clone() ?: Point()
         resize()
-        path.reset()
-        path.moveTo(tl.x.toFloat(), tl.y.toFloat())
-        path.lineTo(tr.x.toFloat(), tr.y.toFloat())
-        path.lineTo(br.x.toFloat(), br.y.toFloat())
-        path.lineTo(bl.x.toFloat(), bl.y.toFloat())
-        path.close()
+        movePoints()
         invalidate()
     }
 
@@ -77,14 +73,20 @@ class PaperRectangle : View {
         tr = corners?.corners?.get(1) ?: SourceManager.defaultTr
         br = corners?.corners?.get(2) ?: SourceManager.defaultBr
         bl = corners?.corners?.get(3) ?: SourceManager.defaultBl
-        val displayMetrics = DisplayMetrics()
-        (context as Activity).windowManager.defaultDisplay.getMetrics(displayMetrics)
-        //exclude status bar height (not always it seems)
-        val statusBarHeight = 0 //getStatusBarHeight(context)
-        ratioX = size?.width?.div(displayMetrics.widthPixels) ?: 1.0
-        ratioY = size?.height?.div(displayMetrics.heightPixels - statusBarHeight) ?: 1.0
-        resize()
-        movePoints()
+        ratioX = 1.0
+        ratioY = 1.0
+        originalSize = size
+    }
+
+    fun onImageSizeChanged(width: Int, height: Int) {
+        originalSize?.let {
+            reverseSize()
+            ratioX = it.width.div(width)
+            ratioY = it.height.div(height)
+            resize()
+            movePoints()
+            invalidate()
+        }
     }
 
     fun getCorners2Crop(): List<Point> {

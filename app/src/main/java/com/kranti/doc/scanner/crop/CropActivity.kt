@@ -16,6 +16,7 @@ class CropActivity : AppCompatActivity(), ICropView.Proxy {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_crop)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        paper.paperRectangle = paper_rect
 
         mPresenter = CropPresenter(this, SourceManager.pic, SourceManager.corners, this)
 

@@ -9,7 +9,7 @@
         android:layout_height="wrap_content"
         android:layout_centerInParent="true" />
 
-    <ImageView
+    <com.kranti.doc.scanner.crop.CropImageView
         android:id="@+id/paper"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
