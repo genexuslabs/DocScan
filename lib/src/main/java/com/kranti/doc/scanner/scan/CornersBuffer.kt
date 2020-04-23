@@ -1,12 +1,8 @@
 package com.kranti.doc.scanner.scan
 
-import android.provider.DocumentsContract
 import android.util.Log
-import android.view.View
 import com.kranti.doc.scanner.processor.Corners
-import com.kranti.doc.scanner.view.PaperRectangle
 import org.opencv.core.Point
-import org.opencv.core.Size
 import kotlin.math.max
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -49,11 +45,12 @@ class CornersBuffer {
         if (corners.corners.size != lastCorners?.corners?.size)
             return null
 
+        val matchingThresholdSquared = corners.size.width * corners.size.height * MATCHING_THRESHOLD_RATIO
         for (n in corners.corners.indices) {
             val xDifference = corners.corners[n]!!.x - lastCorners!!.corners[n]!!.x
             val yDifference = corners.corners[n]!!.y - lastCorners!!.corners[n]!!.y
             val distanceSquare = xDifference * xDifference + yDifference * yDifference
-            if (distanceSquare > MATCHING_THRESHOLD_SQUARED)
+            if (distanceSquare > matchingThresholdSquared)
                 return null
         }
 
@@ -84,7 +81,7 @@ class CornersBuffer {
     }
 
     companion object {
-        private const val MATCHING_THRESHOLD_SQUARED = 50.0 * 50.0
+        private const val MATCHING_THRESHOLD_RATIO = .02
         private const val AUTO_SCAN_THRESHOLD = 3
     }
 }

@@ -194,7 +194,7 @@ class ScanPresenterApi21(private val context: Context, private val iView: IScanV
                                 cameraCaptureSession.capture(buildCaptureRequest(device, true), null, null)
                                 initialFlashMode = CameraMetadata.CONTROL_MODE_OFF
                             } else {
-                                if (!checkCorners(corners, pic) && null != cameraDevice)
+                                if (!checkCorners(corners, pic))
                                     cameraCaptureSession.capture(buildCaptureRequest(device, false), null, null)
                             }
                         }
@@ -205,16 +205,16 @@ class ScanPresenterApi21(private val context: Context, private val iView: IScanV
     }
 
     private fun checkCorners(corners: Corners?, pic: Mat): Boolean {
+        if (takePicture || corners != null && cornersBuffer.onCornersDetected(corners)) {
+            pictureTakenCallback.onPictureTaken(corners, pic)
+            takePicture = false
+            return true
+        }
         if (corners != null) {
             iView.paperRect.onCornersDetected(corners)
         } else {
             iView.paperRect.onCornersNotDetected()
             cornersBuffer.onCornersNotDetected()
-        }
-        if (takePicture || corners != null && cornersBuffer.onCornersDetected(corners)) {
-            pictureTakenCallback.onPictureTaken(corners, pic)
-            takePicture = false
-            return true
         }
         return false
     }
