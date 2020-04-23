@@ -52,6 +52,8 @@ class ScanPresenterApi21(private val context: Context, private val iView: IScanV
         })
     }
 
+    override val worksOnlyPortrait = false
+
     override fun start() {
         startBackgroundThread()
     }

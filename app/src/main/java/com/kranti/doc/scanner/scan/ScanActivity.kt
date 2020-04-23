@@ -1,6 +1,8 @@
 package com.kranti.doc.scanner.scan
 
+import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
@@ -34,6 +36,7 @@ class ScanActivity : AppCompatActivity(), IScanView {
         prepare()
     }
 
+    @SuppressLint("SourceLockedOrientationActivity")
     private fun initPresenter() {
         val scanCallback = object: ScanPresenter.Callback {
             override fun onPictureTaken(corners: Corners?, picture: Mat) {
@@ -44,6 +47,9 @@ class ScanActivity : AppCompatActivity(), IScanView {
         }
 
         presenter = ScanPresenter.new(this, this, scanCallback)
+        presenter.flashOff()
+        if (presenter.worksOnlyPortrait)
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
     }
 
     private fun prepare() {

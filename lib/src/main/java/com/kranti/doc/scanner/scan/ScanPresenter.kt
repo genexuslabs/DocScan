@@ -13,6 +13,7 @@ interface ScanPresenter {
     fun flashOn()
     fun flashOff()
     fun onPermissionGranted()
+    val worksOnlyPortrait: Boolean
     var autoDetectionEnable: Boolean
     var autoDetectionRatio: Double
 

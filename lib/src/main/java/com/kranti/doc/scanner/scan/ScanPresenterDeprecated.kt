@@ -2,6 +2,7 @@ package com.kranti.doc.scanner.scan
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.graphics.Point
@@ -42,6 +43,8 @@ class ScanPresenterDeprecated(private val context: Context, private val iView: I
         executor = Executors.newSingleThreadExecutor()
         proxySchedule = Schedulers.from(executor)
     }
+
+    override val worksOnlyPortrait = true
 
     override fun start() {
         camera?.startPreview() ?: Log.i(ScanPresenter.TAG, "camera null")
