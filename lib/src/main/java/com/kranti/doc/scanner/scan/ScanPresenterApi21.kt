@@ -5,9 +5,9 @@ import android.content.Context
 import android.graphics.ImageFormat
 import android.hardware.camera2.*
 import android.media.ImageReader
+import android.media.MediaActionSound
 import android.os.Handler
 import android.os.HandlerThread
-import android.os.Looper
 import android.util.Log
 import android.util.Size
 import android.view.Surface
@@ -16,6 +16,7 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import com.kranti.doc.scanner.processor.Corners
+import org.opencv.core.Core
 import org.opencv.core.CvType
 import org.opencv.core.Mat
 import org.opencv.imgcodecs.Imgcodecs
@@ -61,12 +62,13 @@ class ScanPresenterApi21(private val context: Context, private val iView: IScanV
 
     override fun shut() {
         takePicture = true
+        MediaActionSound().play(MediaActionSound.SHUTTER_CLICK)
     }
 
     @SuppressLint("MissingPermission")
     private fun openCamera() {
         val manager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-        Log.e(ScanPresenter.TAG, "is camera open")
+        Log.i(ScanPresenter.TAG, "is camera open")
         try {
             val cameraId = manager.cameraIdList[0] // Usually front camera is at 0 position.
             val characteristics = manager.getCameraCharacteristics(cameraId)
@@ -74,7 +76,7 @@ class ScanPresenterApi21(private val context: Context, private val iView: IScanV
             imageDimension = map.getOutputSizes(SurfaceHolder::class.java)?.get(0)!!
             manager.openCamera(cameraId, object : CameraDevice.StateCallback() {
                 override fun onOpened(camera: CameraDevice) {
-                    Log.e(ScanPresenter.TAG, "onOpened")
+                    Log.i(ScanPresenter.TAG, "onOpened")
                     cameraDevice = camera
                     initializeCamera()
                 }
@@ -149,15 +151,22 @@ class ScanPresenterApi21(private val context: Context, private val iView: IScanV
         val captureRequestBuilder = device.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
         captureRequestBuilder.addTarget(imageReader.surface)
 
-        // Orientation
-        val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        val rotation = windowManager.defaultDisplay.rotation
-        captureRequestBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS[rotation])
-
         if (addFlash)
             captureRequestBuilder.set(CaptureRequest.CONTROL_MODE, initialFlashMode)
 
         return captureRequestBuilder.build()
+    }
+
+    private val rotation: Int? get() {
+        // Orientation
+        val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        val deviceRotation = windowManager.defaultDisplay.rotation
+        val surfaceRotation = SURFACE_ORIENTATIONS[deviceRotation] ?: 0
+        val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        val characteristics = cameraManager.getCameraCharacteristics(cameraDevice?.id ?: "")
+        val sensorOrientation = characteristics[CameraCharacteristics.SENSOR_ORIENTATION] ?: 0
+        val jpegOrientation = (surfaceRotation + sensorOrientation + 270) % 360
+        return CORE_ORIENTATIONS[jpegOrientation]
     }
 
     private fun startCornerPreview(cameraCaptureSession: CameraCaptureSession) {
@@ -165,23 +174,28 @@ class ScanPresenterApi21(private val context: Context, private val iView: IScanV
             cameraCaptureSession.capture(buildCaptureRequest(device, false), null, null)
 
             imageReader.setOnImageAvailableListener({ reader ->
-                reader.acquireLatestImage().use {
-                    val buffer = it.planes[0].buffer
-                    val bytes = ByteArray(buffer.capacity())
-                    buffer.get(bytes)
-                    val mat = Mat(org.opencv.core.Size((it.width * it.height).toDouble(), 1.0), CvType.CV_8U)
-                    mat.put(0, 0, bytes)
-                    val pic = Imgcodecs.imdecode(mat, Imgcodecs.IMREAD_UNCHANGED)
-                    mat.release()
-                    val corners = com.kranti.doc.scanner.processor.processPicture(pic)
-                    Imgproc.cvtColor(pic, pic, Imgproc.COLOR_RGB2BGRA)
-                    if (takePicture && initialFlashMode == CameraMetadata.CONTROL_MODE_AUTO) {
-                        // take one more with flash
-                        cameraCaptureSession.capture(buildCaptureRequest(device,true), null, null)
-                        initialFlashMode = CameraMetadata.CONTROL_MODE_OFF
-                    } else {
-                        if (!checkCorners(corners, pic))
-                            cameraCaptureSession.capture(buildCaptureRequest(device,false), null, null)
+                synchronized(this) {
+                    if (null != cameraDevice) {
+                        reader.acquireLatestImage().use {
+                            val buffer = it.planes[0].buffer
+                            val bytes = ByteArray(buffer.capacity())
+                            buffer.get(bytes)
+                            val mat = Mat(org.opencv.core.Size((it.width * it.height).toDouble(), 1.0), CvType.CV_8U)
+                            mat.put(0, 0, bytes)
+                            val pic = Imgcodecs.imdecode(mat, Imgcodecs.IMREAD_UNCHANGED)
+                            rotation?.let { r -> Core.rotate(pic, pic, r) }
+                            mat.release()
+                            val corners = com.kranti.doc.scanner.processor.processPicture(pic)
+                            Imgproc.cvtColor(pic, pic, Imgproc.COLOR_RGB2BGRA)
+                            if (takePicture && initialFlashMode == CameraMetadata.CONTROL_MODE_AUTO) {
+                                // take one more with flash
+                                cameraCaptureSession.capture(buildCaptureRequest(device, true), null, null)
+                                initialFlashMode = CameraMetadata.CONTROL_MODE_OFF
+                            } else {
+                                if (!checkCorners(corners, pic) && null != cameraDevice)
+                                    cameraCaptureSession.capture(buildCaptureRequest(device, false), null, null)
+                            }
+                        }
                     }
                 }
             }, backgroundHandler)
@@ -191,13 +205,14 @@ class ScanPresenterApi21(private val context: Context, private val iView: IScanV
     private fun checkCorners(corners: Corners?, pic: Mat): Boolean {
         if (corners != null) {
             iView.paperRect.onCornersDetected(corners)
-            if (cornersBuffer.onCornersDetected(corners) || takePicture) {
-                pictureTakenCallback.onPictureTaken(corners, pic)
-                return true
-            }
         } else {
             iView.paperRect.onCornersNotDetected()
             cornersBuffer.onCornersNotDetected()
+        }
+        if (takePicture || corners != null && cornersBuffer.onCornersDetected(corners)) {
+            pictureTakenCallback.onPictureTaken(corners, pic)
+            takePicture = false
+            return true
         }
         return false
     }
@@ -235,11 +250,18 @@ class ScanPresenterApi21(private val context: Context, private val iView: IScanV
     }
 
     companion object {
-        private val ORIENTATIONS = mapOf(
+        private val SURFACE_ORIENTATIONS = mapOf(
             Surface.ROTATION_0 to 90,
             Surface.ROTATION_90 to 0,
             Surface.ROTATION_180 to 270,
             Surface.ROTATION_270 to 180
+        )
+
+        private val CORE_ORIENTATIONS = mapOf(
+                0 to null,
+                90 to Core.ROTATE_90_CLOCKWISE,
+                180 to Core.ROTATE_180,
+                270 to Core.ROTATE_90_COUNTERCLOCKWISE
         )
     }
 }
