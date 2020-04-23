@@ -88,7 +88,7 @@ class CropPresenter(val context: Context, private val picture: Mat?, private val
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             Toast.makeText(context, "please grant write file permission and try again", Toast.LENGTH_SHORT).show()
         } else {
-            val dir = File(Environment.getExternalStorageDirectory(), IMAGES_DIR)
+            val dir = File(context.getExternalFilesDir(null), IMAGES_DIR)
             if (!dir.exists()) {
                 dir.mkdirs()
             }
@@ -114,13 +114,13 @@ class CropPresenter(val context: Context, private val picture: Mat?, private val
                 }
             }
         }
-        galleryAddPic()
+        galleryAddPic(context)
     }
 
-    fun galleryAddPic() {
-        val dir = File(Environment.getExternalStorageDirectory(), IMAGES_DIR)
+    @Suppress("deprecation")
+    private fun galleryAddPic(context: Context) {
+        val dir = File(context.getExternalFilesDir(null), IMAGES_DIR)
         Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE).also { mediaScanIntent ->
-            // val f = File(dir)
             mediaScanIntent.data = Uri.fromFile(dir)
             context.sendBroadcast(mediaScanIntent)
             Toast.makeText(context, "this is the Gallery add method", Toast.LENGTH_LONG).show()
