@@ -1,4 +1,4 @@
-package com.kranti.doc.scanner.scan
+package com.kranti.doc.scannerapp.scan
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -15,11 +15,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.kranti.doc.scanner.R
 import com.kranti.doc.scanner.SourceManager
-import com.kranti.doc.scanner.crop.CropActivity
 import com.kranti.doc.scanner.processor.Corners
+import com.kranti.doc.scanner.scan.IScanView
+import com.kranti.doc.scanner.scan.ScanPresenter
 import com.kranti.doc.scanner.view.PaperRectangle
+import com.kranti.doc.scannerapp.R
+import com.kranti.doc.scannerapp.crop.CropActivity
 import kotlinx.android.synthetic.main.activity_scan.*
 import org.opencv.core.Mat
 

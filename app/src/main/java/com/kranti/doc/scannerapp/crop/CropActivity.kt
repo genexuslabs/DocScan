@@ -1,11 +1,13 @@
-package com.kranti.doc.scanner.crop
+package com.kranti.doc.scannerapp.crop
 
 import android.os.Bundle
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
-import com.kranti.doc.scanner.R
 import com.kranti.doc.scanner.SourceManager
+import com.kranti.doc.scanner.crop.CropPresenter
+import com.kranti.doc.scanner.crop.ICropView
 import com.kranti.doc.scanner.view.PaperRectangle
+import com.kranti.doc.scannerapp.R
 import kotlinx.android.synthetic.main.activity_crop.*
 
 class CropActivity : AppCompatActivity(), ICropView.Proxy {
